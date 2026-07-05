@@ -6,7 +6,7 @@ Motor de Base de Datos: SQL Server.
 
 Herramientas de Desarrollo: Visual Studio 2022 y .NET 9.
 
-Administrador de BD: SQL Server Management Studio (SSMS) o Azure Data Studio.
+Administrador de BD: SQL Server Management Studio (SSMS).
 
 🔧 Configuración Inicial (Connection Strings)
 Antes de levantar los proyectos, es necesario configurar la cadena de conexión a las bases de datos. Para ello, dirígete al archivo appsettings.json de cada proyecto backend, busca la sección de conexión y cambia el host, usuario y password según tu entorno local:
