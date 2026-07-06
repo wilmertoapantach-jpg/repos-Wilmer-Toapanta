@@ -9,10 +9,11 @@ namespace workItem.Service
     /// Servicio que implementa la lógica de negocio para la gestión de elementos de trabajo.
     /// Incluye la lógica de distribución automática de tareas entre usuarios según reglas de carga.
     /// </summary>
-    public class WorkItemService(IWorkItemRepository workItemRepository, IConfiguration configuration) : IWorkItemService
+    public class WorkItemService(IWorkItemRepository workItemRepository, IUserService userService ) : IWorkItemService
     {
         private readonly IWorkItemRepository _workItemRepository = workItemRepository;
-        private readonly string _userApiBaseUrl = configuration.GetValue<string>("urlUser")!;
+        private readonly IUserService _userService = userService;
+
 
         // ─── Constantes para la lógica de distribución ────────────────────────────────
         /// <summary>Identificador de relevancia alta para elementos de trabajo</summary>
@@ -226,44 +227,13 @@ namespace workItem.Service
         {
             try
             {
-                using var client = new HttpClient();
-                client.BaseAddress = new Uri(_userApiBaseUrl);
-                // Construir el cuerpo de la solicitud para filtrar usuarios activos
-                var body = new
-                {
-                    status = 1  // 1 = activo
-                };
-                // Realizar la solicitud POST a la API de usuarios
-                var response = await client.PostAsJsonAsync("api/User/ListAllUsers", body);
-                response.EnsureSuccessStatusCode();
-                // Deserializar la respuesta o retornar lista vacía si no hay resultado
-                var result = await response.Content.ReadFromJsonAsync<APIResponseDTO<List<UserExternalDTO>>>();
-                return result?.Result ?? new List<UserExternalDTO>();
+                return await _userService.GetActiveUsersAsync();
             }
             catch (Exception ex)
             {
                 throw new Exception("Error al obtener usuarios activos desde la API externa.", ex);
             }
 
-        }
-
-        /// <summary>
-        /// DTO que representa un usuario externo de la API de usuarios.
-        /// Coincide con la estructura de respuesta de https://localhost:7098/api/User/ListAllUsers
-        /// </summary>
-        public class UserExternalDTO
-        {
-            /// <summary>Identificador único del usuario en el sistema externo</summary>
-            public int Id { get; set; }
-
-            /// <summary>Número de identificación del usuario (cédula, pasaporte, etc.)</summary>
-            public string? IdentificationNumber { get; set; }
-
-            /// <summary>Nombre completo del usuario</summary>
-            public string? FullName { get; set; }
-
-            /// <summary>Estado del usuario (1 = activo, 0 = inactivo)</summary>
-            public int Status { get; set; }
         }
 
     }

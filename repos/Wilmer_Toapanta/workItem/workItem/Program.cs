@@ -57,6 +57,7 @@ builder.Services.AddDbContextFactory<workManagementContext>(options =>
 // Registrar Repositorio y Servicio mediante inyeccion de dependencias
 builder.Services.AddScoped<IWorkItemRepository, WorkItemRepository>();
 builder.Services.AddScoped<IWorkItemService, WorkItemService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Registrar HttpClient para comunicacion con API externa de usuarios
 builder.Services.AddHttpClient("UserApi", client =>

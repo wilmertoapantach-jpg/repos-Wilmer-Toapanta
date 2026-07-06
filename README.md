@@ -130,13 +130,14 @@ Estados (status): 1 = Pendiente | 2 = Completado
 2. Lista de Actividades de Trabajo por Usuario
 Permite obtener la lista de tareas asignadas de manera paginada filtrando por el ID del usuario.
 
-Endpoint: POST api/WorkItem/ListWorkItemsByUser
+Endpoint: POST api/WorkItem/ListWorkItems
 
 Request Body:
 {
 "pageNumber": 1,
 "pageSize": 10,
 "assignedUserId": 1
+"status": 1
 }
 
 3. Reasignación de Actividad
