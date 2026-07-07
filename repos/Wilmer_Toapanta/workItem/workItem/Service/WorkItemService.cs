@@ -15,18 +15,7 @@ namespace workItem.Service
         private readonly IUserService _userService = userService;
 
 
-        // ─── Constantes para la lógica de distribución ────────────────────────────────
-        /// <summary>Identificador de relevancia alta para elementos de trabajo</summary>
-        private const int HIGH_RELEVANCE = 1;
 
-        /// <summary>Identificador de relevancia baja para elementos de trabajo</summary>
-        private const int LOW_RELEVANCE = 0;
-
-        /// <summary>Umbral máximo de tareas de alta relevancia asignadas a un usuario antes de considerarlo saturado</summary>
-        private const int SATURATION_THRESHOLD = 3;   // >3 elementos de alta relevancia → saturado
-
-        /// <summary>Días desde hoy para considerar una tarea como próxima a vencer</summary>
-        private const int NEAR_DUE_DAYS = 3;           // <3 días desde ahora → próxima a vencer
 
         // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -93,7 +82,7 @@ namespace workItem.Service
                 ?? throw new Exception($"WorkItem con Id {workItemId} no encontrado.");
 
             // Calcular la asignación usando las reglas de distribución
-            var assignedUserName = await DistributeWorkItem(item.DueDate, item.Priority, item.AssignedUserName);
+            var assignedUserName = await DistributeWorkItem(item.DueDate, item.Priority, item?.AssignedUserName ?? "");
 
             // Actualizar el elemento con el nuevo usuario asignado
             var updateRequest = new WorkItemRequestDTO
@@ -185,13 +174,13 @@ namespace workItem.Service
                 {
                     var items = listUserTask.Where(i => i.AssignedUserName == user.FullName).ToList();
                     int total = items.Count();                                              // Total de tareas asignadas
-                    int high = items.Count(i => i.Priority == HIGH_RELEVANCE);          // Tareas de alta relevancia
+                    int high = items.Count(i => i.Priority == Catalog.HIGH_RELEVANCE);          // Tareas de alta relevancia
                     workloads.Add((user, total, high));
                 }
 
                 // 3. Aplicar reglas de asignación
                 // Verifica que la fecha de entrega este cerca a vencer
-                bool isNearDue = (dueDate - DateTime.UtcNow).TotalDays <= NEAR_DUE_DAYS;
+                bool isNearDue = (dueDate - DateTime.UtcNow).TotalDays <= Catalog.NEAR_DUE_DAYS;
 
                 // Regla 1: Si la tarea es próxima a vencer, asignar al usuario con menos tareas sin importar relevancia
                 if (isNearDue)
@@ -201,10 +190,10 @@ namespace workItem.Service
                 }
 
                 // Regla 2: Si es de alta relevancia, asignar a usuario no saturado con menos tareas
-                if (Priority == HIGH_RELEVANCE)
+                if (Priority == Catalog.HIGH_RELEVANCE)
                 {
                     var eligible = workloads
-                        .Where(w => w.HighCount <= SATURATION_THRESHOLD)  // Excluir saturados
+                        .Where(w => w.HighCount <= Catalog.SATURATION_THRESHOLD)  // Excluir saturados
                         .OrderBy(w => w.Total)                             // Ordenar por carga total
                         .ToList();
 
@@ -215,7 +204,7 @@ namespace workItem.Service
                 // Regla 3: baja relevancia o sin usuarios elegibles para alta relevancia
                 // Asignar al usuario no saturado con menos tareas
                 var fallback = workloads
-                    .Where(w => w.HighCount <= SATURATION_THRESHOLD)
+                    .Where(w => w.HighCount <= Catalog.SATURATION_THRESHOLD)
                     .OrderBy(w => w.Total)
                     .FirstOrDefault();
 
