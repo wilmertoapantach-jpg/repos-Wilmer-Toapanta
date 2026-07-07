@@ -1,11 +1,12 @@
 🚀 Gestión de Usuarios y Tareas (userManagement & workManagement)
 Este repositorio contiene las APIs del Backend y los scripts de SQL Server necesarios para inicializar las bases de datos encargadas de la gestión de usuarios y el control de flujos de trabajo o tareas (workItems).
+Arquitecturas
+-Microservicios
+-Hexagonal
 
 📋 Requisitos Previos
 Motor de Base de Datos: SQL Server.
-
 Herramientas de Desarrollo: Visual Studio 2022 y .NET 9.
-
 Administrador de BD: SQL Server Management Studio (SSMS).
 
 🔧 Configuración Inicial (Connection Strings)
@@ -43,9 +44,9 @@ GO
 
 CREATE TABLE [userData](
 [id] [int] IDENTITY(1,1) NOT NULL,
-[identificationNumber] nvarchar NOT NULL,
-[fullName] nvarchar NOT NULL,
-[email] nvarchar NOT NULL,
+[identificationNumber] nvarchar(20) NOT NULL,
+[fullName] nvarchar(200) NOT NULL,
+[email] nvarchar(150) NOT NULL,
 [status] [smallint] NOT NULL,
 CONSTRAINT [PK_userData] PRIMARY KEY CLUSTERED ([id] ASC)
 );
@@ -61,12 +62,12 @@ GO
 
 CREATE TABLE [dbo].[workItem](
 [id] [int] IDENTITY(1,1) NOT NULL,
-[title] nvarchar NOT NULL,
-[description] nvarchar NULL,
+[title] nvarchar(200) NOT NULL,
+[description] nvarchar(500) NULL,
 [status] [smallint] NOT NULL,
 [dueDate] [datetime] NOT NULL,
 [priority] [int] NOT NULL,
-[assignedUserId] [int] NULL,
+[assignedUserName] nvarchar(200) NULL,
 [createdDate] [datetime] NOT NULL,
 CONSTRAINT [PK_workItem] PRIMARY KEY CLUSTERED ([id] ASC)
 );
@@ -128,16 +129,16 @@ Prioridades (priority): 0 = Baja | 1 = Alta
 Estados (status): 1 = Pendiente | 2 = Completado
 
 2. Lista de Actividades de Trabajo por Usuario
-Permite obtener la lista de tareas asignadas de manera paginada filtrando por el ID del usuario.
+Permite obtener la lista de tareas asignadas de manera paginada filtrando por usuario y acorde a la fecha y la prioridad.
 
 Endpoint: POST api/WorkItem/ListWorkItems
 
 Request Body:
 {
-"pageNumber": 1,
-"pageSize": 10,
-"assignedUserId": 1
-"status": 1
+  "pageNumber": 1,
+  "pageSize": 10,
+  "status": 1,
+  "assignedUserName": "usuario A"
 }
 
 3. Reasignación de Actividad
@@ -147,6 +148,102 @@ Endpoint: PUT api/WorkItem/AssignWorkItem
 
 Request Body:
 {
-"workItemId": 1,
-"assignedUserId": 2
+"workItemId": 1
+}
+
+
+Ejemplos practicos
+
+1. Regla de Urgencia (Fecha menor a 3 días)
+Esta regla ignora la relevancia y busca directamente al usuario con menos tareas totales.
+
+Caso 1: Tarea Urgente de Baja Relevancia
+
+Contexto: Vence mañana (menos de 3 días). Debe ir al usuario con menos ítems de trabajo.
+
+JSON:
+
+{
+  "workItemId": 0,
+  "title": "Corrección de Bug de Interfaz",
+  "description": "El botón de cierre del modal-overlay no responde en dispositivos móviles.",
+  "dueDate": "2026-07-08T18:00:00.000Z",
+  "priority": 0,
+  "status": 1
+}
+
+Caso 2: Tarea Urgente de Alta Relevancia
+
+Contexto: Vence en dos días. Aunque sea alta, la prioridad de asignación la maneja el vencimiento próximo.
+
+JSON:
+
+{
+  "workItemId": 0,
+  "title": "Caída del servicio de Firmas",
+  "description": "Fallo crítico en el ambiente de producción al firmar documentos.",
+  "dueDate": "2026-07-09T09:30:00.000Z",
+  "priority": 1,
+  "status": 1
+}
+
+2. Regla de Relevancia (Tareas No Urgentes: mayor o igual a 3 días)
+Se evalúa primero la prioridad (1 antes que 0) y se distribuye al usuario con menor lista de pendientes.
+
+Caso 3: Tarea No Urgente - Alta Relevancia
+
+Contexto: Entrega lejana (13 días). Debe asignarse con prioridad sobre las bajas a los usuarios que tengan espacio (no saturados).
+
+JSON:
+
+{
+  "workItemId": 0,
+  "title": "Integración Pasarela de Pagos",
+  "description": "Desarrollo del módulo de comunicación con el Core Bancario.",
+  "dueDate": "2026-07-20T23:59:59.000Z",
+  "priority": 1,
+  "status": 1
+}
+Caso 4: Tarea No Urgente - Baja Relevancia
+
+Contexto: Entrega lejana (18 días). Se procesará al final o se asignará al usuario que tenga la menor carga de pendientes actual.
+
+JSON:
+{
+  "workItemId": 0,
+  "title": "Refactorización de Consultas SQL",
+  "description": "Optimizar los índices de la tabla de logs en PostgreSQL.",
+  "dueDate": "2026-07-25T12:00:00.000Z",
+  "priority": 0,
+  "status": 1
+}
+
+3. Reglas de Control Especiales
+Caso 5: Inyección a un Entorno Saturado
+
+Contexto: Usas este JSON para validar que, si un usuario ya cuenta con más de 3 tareas con priority: 1, el sistema lo salte automáticamente y no le asigne este ítem.
+
+
+JSON
+{
+  "workItemId": 0,
+  "title": "Nueva Feature de Alta Relevancia",
+  "description": "Validar que el algoritmo de asignación excluya a los usuarios saturados.",
+  "dueDate": "2026-07-15T15:00:00.000Z",
+  "priority": 1,
+  "status": 1
+}
+Caso 6: Frontera de Tiempo Exacta (Edge Case de 72 horas)
+
+Contexto: Como la fecha actual simulada es 2026-07-07, este JSON vence exactamente el 2026-07-10. Sirve para verificar si tu lógica toma los 3 días como un menor estricto (<) o menor o igual (<=).
+
+JSON:
+
+{
+  "workItemId": 0,
+  "title": "Verificación Límite de 3 días",
+  "description": "Validar comportamiento exacto en la frontera de las 72 horas.",
+  "dueDate": "2026-07-10T00:00:00.000Z",
+  "priority": 0,
+  "status": 1
 }
