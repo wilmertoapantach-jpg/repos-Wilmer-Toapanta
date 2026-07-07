@@ -1,8 +1,8 @@
 🚀 Gestión de Usuarios y Tareas (userManagement & workManagement)
 Este repositorio contiene las APIs del Backend y los scripts de SQL Server necesarios para inicializar las bases de datos encargadas de la gestión de usuarios y el control de flujos de trabajo o tareas (workItems).
 Arquitecturas
--Microservicios
--Hexagonal
+-Microservicios: El proyecto cuenta con dos backend, uno para la gestión de usuario y otra para la gestión de tareas, cada uno tiene su propia base de datos.
+-Hexagonal: El backend se encuentra separado en capas, es decir, tiene Controllers, Services, Repositories
 
 📋 Requisitos Previos
 Motor de Base de Datos: SQL Server.
