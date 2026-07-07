@@ -17,5 +17,11 @@ namespace workItem.Service.IService
         
         /// <summary>Asigna o reasigna un elemento de trabajo existente al usuario más apropiado usando las reglas de distribución.</summary>
         Task<WorkItemResponseDTO> AssignWorkItem(int workItemId);
+        /// <summary>
+        /// Recupera una lista de elementos de trabajo según los filtros proporcionados, sin paginación.
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        Task<List<WorkItemResponseDTO>> ListWork(WorkItemFilterDTO filter);
     }
 }

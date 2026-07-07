@@ -20,21 +20,36 @@ namespace workItem.Controllers
         /// <param name="request">Objeto con los datos del elemento de trabajo a crear o actualizar</param>
         /// <returns>Respuesta con el elemento de trabajo guardado o actualizado</returns>
         [HttpPost("SaveWorkItem")]
-        public async Task<ActionResult<APIResponseDTO<WorkItemResponseDTO>>> SaveWorkItem([FromBody] WorkItemRequestDTO request)
+        public async Task<ActionResult<APIResponseDTO<List<WorkItemResponseDTO>>>> SaveWorkItem([FromBody] WorkItemRequestDTO request)
         {
             try
             {
                 var result = await _workItemService.SaveWorkItem(request);
-                return Ok(new APIResponseDTO<WorkItemResponseDTO>
+                // Si el resultado es nulo, significa que no se pudo guardar el elemento de trabajo.
+                if (result == null) return BadRequest(new APIResponseDTO<List<WorkItemResponseDTO>>
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Messages = new List<string> { "No se pudo guardar el elemento de trabajo." }
+                });
+
+                // Si el elemento de trabajo se guardó correctamente, se devuelve la lista de elementos de trabajo asignados al usuario.
+                var filter = new WorkItemFilterDTO
+                {
+                    AssignedUserName = request.AssignedUserName,
+                    Status = 1
+                };
+                var data = await _workItemService.ListWork(filter);
+                return Ok(new APIResponseDTO<List<WorkItemResponseDTO>>
                 {
                     IsSuccess = true,
                     StatusCode = HttpStatusCode.OK,
-                    Result = result
+                    Result = data
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new APIResponseDTO<WorkItemResponseDTO>
+                return BadRequest(new APIResponseDTO<List<WorkItemResponseDTO>>
                 {
                     IsSuccess = false,
                     StatusCode = HttpStatusCode.BadRequest,

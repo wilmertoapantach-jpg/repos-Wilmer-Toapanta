@@ -25,6 +25,6 @@ namespace workItem.DTO
         /// <summary>Estado del elemento (1 = activo, 0 = inactivo, por defecto 1)</summary>
         public short Status { get; set; } = 1;
         /// <summary>Identificador del usuario a quien está asignado este elemento de trabajo</summary>
-        public int? AssignedUserId { get; set; }
+        public string? AssignedUserName { get; set; } = string.Empty;
     }
 }

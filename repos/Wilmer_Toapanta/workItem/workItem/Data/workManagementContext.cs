@@ -7,51 +7,30 @@ using workItem.Models;
 
 namespace workItem.Data;
 
-/// <summary>
-/// Contexto de la base de datos para la gestión de elementos de trabajo.
-/// Define el modelo de datos y las configuraciones de mapeo de entidades.
-/// Este contexto fue generado automáticamente por EF Core Power Tools.
-/// </summary>
 public partial class workManagementContext : DbContext
 {
-    /// <summary>
-    /// Constructor del contexto que acepta las opciones de configuración.
-    /// Se utiliza para inyección de dependencias en la aplicación.
-    /// </summary>
-    /// <param name="options">Opciones de configuración del DbContext (incluye cadena de conexión)</param>
     public workManagementContext(DbContextOptions<workManagementContext> options)
         : base(options)
     {
     }
 
-    /// <summary>
-    /// DbSet que representa la tabla "workItem" en la base de datos.
-    /// Se utiliza para consultar, crear, actualizar y eliminar elementos de trabajo.
-    /// </summary>
     public virtual DbSet<WorkItem> WorkItem { get; set; }
 
-    /// <summary>
-    /// Método que configura el modelo de datos y sus relaciones.
-    /// Define las claves primarias, índices, restricciones y mapeos de columnas.
-    /// Se llama automáticamente cuando se crea la base de datos o migraciones.
-    /// </summary>
-    /// <param name="modelBuilder">Constructor del modelo de EF Core</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Configuración de la entidad WorkItem
         modelBuilder.Entity<WorkItem>(entity =>
         {
-            // Configurar clave primaria
             entity.HasKey(e => e.Id).HasName("PK__workItem__3213E83FBF7599AE");
 
-            // Nombre de la tabla en la base de datos
             entity.ToTable("workItem");
 
-            // Mapeo de propiedades a columnas de la base de datos
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.AssignedUserId).HasColumnName("assignedUserId");
+            entity.Property(e => e.AssignedUserName)
+                .HasMaxLength(200)
+                .HasColumnName("assignedUserName");
             entity.Property(e => e.CreatedDate)
                 .HasDefaultValueSql("(getdate())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF__workItem__create__2B3F6F97")
                 .HasColumnType("datetime")
                 .HasColumnName("createdDate");
             entity.Property(e => e.Description)
@@ -68,14 +47,8 @@ public partial class workManagementContext : DbContext
                 .HasColumnName("title");
         });
 
-        // Método parcial para extensiones personalizadas del modelo
         OnModelCreatingPartial(modelBuilder);
     }
 
-    /// <summary>
-    /// Método parcial que permite añadir configuraciones personalizadas del modelo.
-    /// Puede ser implementado en otra clase parcial para extender la configuración.
-    /// </summary>
-    /// <param name="modelBuilder">Constructor del modelo de EF Core</param>
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

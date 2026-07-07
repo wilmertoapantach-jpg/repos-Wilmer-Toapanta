@@ -22,9 +22,11 @@ namespace workItem.Repository.IRepository
         Task<bool> ExistsWorkItem(int workItemId);
         
         /// <summary>Obtiene todos los elementos de trabajo activos asignados a un usuario para la lógica de asignación.</summary>
-        Task<List<WorkItemResponseDTO>> GetWorkItemsByUser(int userId);
-        
-        /// <summary>Cuenta los elementos de trabajo activos con relevancia alta asignados a un usuario para verificar saturación.</summary>
-        Task<int> CountHighRelevanceByUser(string username);
+        Task<List<WorkItemResponseDTO>> GetWorkItemsByUser(List<string> usernames);
+       
+        /// <summary>Lista los elementos de trabajo con filtros opcionales.</summary>
+        Task<List<WorkItemResponseDTO>> ListWork(WorkItemFilterDTO filter);
+        /// <summary>Cuenta los elementos de trabajo con alta relevancia asignados a una lista de usuarios.</summary>
+        Task<List<WorkItemResponseDTO>> CountHighRelevanceByUser(List<string> usernames);
     }
 }

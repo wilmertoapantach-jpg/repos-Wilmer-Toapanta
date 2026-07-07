@@ -15,9 +15,9 @@ namespace workItem.DTO
         public short? Status { get; set; }
         
         /// <summary>Filtro opcional: relevancia del elemento ("High" o "Low")</summary>
-        public string? Relevance { get; set; }
+        public int? Relevance { get; set; }
         
         /// <summary>Filtro opcional: ID del usuario asignado (retorna elementos asignados a ese usuario)</summary>
-        public int? AssignedUserId { get; set; }
+        public string? AssignedUserName { get; set; } = string.Empty;
     }
 }

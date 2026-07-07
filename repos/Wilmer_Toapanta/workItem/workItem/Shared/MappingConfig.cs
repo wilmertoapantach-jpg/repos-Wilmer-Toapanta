@@ -14,7 +14,7 @@ namespace workItem.Shared
 
             CreateMap<WorkItemRequestDTO, WorkItem>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.WorkItemId))
-                .ForMember(dest => dest.AssignedUserId, opt => opt.Ignore())
+                .ForMember(dest => dest.AssignedUserName, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedDate, opt => opt.Ignore());
         }
     }
